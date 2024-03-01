@@ -19,8 +19,8 @@ const client = new Client({
 //     account_id VARCHAR(255),
 //     email VARCHAR(255),
 //     activated BOOLEAN DEFAULT TRUE,
-//     activate_number INT DEFAULT 0,
-//     send_activate_number_time TIMESTAMP DEFAULT NOW()
+//     activate_code INT DEFAULT 0,
+//     send_activate_code_time TIMESTAMP DEFAULT NOW()
 // )
 
 client.connect();
@@ -47,7 +47,7 @@ const db = {
         }
     },
     createUser: async (nickname, password, email, number) =>{
-        const query = 'INSERT INTO users (nickname, password, email, account_type, activated, activate_number) VALUES ($1, $2, $3, $4, $5, $6)';
+        const query = 'INSERT INTO users (nickname, password, email, account_type, activated, activate_code) VALUES ($1, $2, $3, $4, $5, $6)';
         try{
             await client.query(query, [nickname, password, email, 'default', false, number]);
         }catch(e){
@@ -63,7 +63,25 @@ const db = {
             console.error(e);
             return null;
         }
-    }
+    },
+    getUserById: async (id) =>{
+        const query = 'SELECT * FROM users WHERE id = $1';
+        try{
+            const result = await client.query(query, [id]);
+            return result.rows[0];
+        }catch(e){
+            console.error(e);
+            return null;
+        }
+    },
+    activateAccount: async (id) =>{
+        const query = `UPDATE users SET activated='true' WHERE id=$1;`;
+        try{
+            await client.query(query, [id]);
+        }catch(e){
+            console.error(e);
+        }
+    },
 }
 
 module.exports = db;

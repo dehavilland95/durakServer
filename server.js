@@ -5,10 +5,10 @@ const utils = require('./utils');
 const PORT = 80;
 
 const server = createServer((req, res) =>{
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     if(req.method === 'OPTIONS'){
-        res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
         res.writeHead(200);
         res.end();
     }else if(req.method === 'POST'){

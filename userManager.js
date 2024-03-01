@@ -3,8 +3,8 @@ const db = require('./db');
 const bcrypt = require('bcrypt');
 const utils = require('./utils');
 const jwt = require('jsonwebtoken');
-// const Mail = require('./mail');
-// const mail = new Mail();
+const Mail = require('./mail');
+const mail = new Mail();
 class UserManager{
     async authorization(data){
         const user = await db.getUserByEmail(data.email);
@@ -39,7 +39,7 @@ class UserManager{
         const user = await db.getUserByEmail(data.email);
         if(user === null) return { status: 'error', message: 'Ошибка, повторите позже'};
         const text = `Ваш проверочный код ${number}`;
-        //await mail.send(data.email, 'Подтверждение регистрации', text);
+        await mail.send(data.email, 'Подтверждение регистрации', text);
         const token = this.generateToken({ id: user.id, nickname: user.nickname });
         if(token === null) return { status: 'error', message: 'Не удалось получить токен'};
         return {
@@ -49,6 +49,15 @@ class UserManager{
                 nickname: user.nickname
             }
         }
+    }
+    async activateAccount(data){
+        const decoded = this.verifyToken(data.token);
+        if(decoded === null) return { status: 'error', message: 'Ошибка, повторите позже' };
+        const user = await db.getUserById(decoded.data.id);
+        if(user === null) return { status: 'error', message: 'Ошибка, пользователь не найден' };
+        if(data.code !== user.activate_code) return { status: 'error', message: 'Неправильный код' };
+        await db.activateAccount(user.id);
+        return { status: 'ok' };
     }
     generateToken(user){
         try{
@@ -64,7 +73,7 @@ class UserManager{
             const user = jwt.verify(token, config.tokenSecretKey);
             return user;
         }catch(e){
-            console.error(e);
+            //console.error(e);
             return null;
         }
     }
